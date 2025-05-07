@@ -13,6 +13,8 @@ import java.io.Serializable;
 @Getter
 @ToString
 public class Movie implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     @Id
     private String imdb;
     private String title;
