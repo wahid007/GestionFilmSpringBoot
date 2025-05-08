@@ -31,7 +31,7 @@ class MovieServiceTest {
     @BeforeEach
     void setUp() {
         movie1 = new Movie("tt0111161", "The Shawshank Redemption", 1994);
-        movie2 = new Movie("tt0068646", "The Godfather", 1972);
+        movie2 = new Movie("tt0068696", "The Godfather", 1972);
     }
 
     @Test
