@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie CRUD App</title>
+    <style>
+        /* Global Styles */
+        :root {
+            --primary-color: #007bff;
+            --primary-hover-color: #0056b3;
+            --danger-color: #dc3545;
+            --danger-hover-color: #c82333;
+            --success-color: #28a745;
+            --success-hover-color: #218838;
+            --light-gray: #f8f9fa;
+            --medium-gray: #dee2e6;
+            --dark-gray: #343a40;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --border-radius: 0.3rem;
+            --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            color: var(--dark-gray);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover-color);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover-color);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: var(--success-hover-color);
+        }
+
+
+        /* Table Styles */
+        .movie-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        .movie-table th,
+        .movie-table td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .movie-table th {
+            background-color: var(--light-gray);
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
+
+        .movie-table tbody tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .movie-table td:last-child {
+            text-align: right;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto; /* 10% from the top and centered */
+            padding: 2rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            position: relative; /* For close button positioning */
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--dark-gray);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
+            width: calc(100% - 1.6rem); /* Adjust for padding */
+            padding: 0.8rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+
+
+        /* Utility */
+        .text-center {
+            text-align: center;
+        }
+        .mt-1 {
+            margin-top: 1rem;
+        }
+
+        /* Loader */
+        .loader {
+            border: 5px solid var(--light-gray);
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error Message */
+        #errorMessage {
+            color: var(--danger-color);
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: var(--border-radius);
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Movie Collection</h1>
+    <div id="errorMessage"></div>
+    <button id="addMovieBtn" class="btn btn-primary">Add New Movie</button>
+
+    <div id="loader" class="loader" style="display: none;"></div>
+    <table class="movie-table">
+        <thead>
+        <tr>
+            <th>IMDb ID</th>
+            <th>Title</th>
+            <th>Release Year</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="movieTableBody">
+        </tbody>
+    </table>
+</div>
+
+<div id="movieModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" id="closeModalBtn">&times;</span>
+        <h2 id="modalTitle">Add Movie</h2>
+        <form id="movieForm">
+            <input type="hidden" id="movieImdbHidden"> <div class="form-group">
+            <label for="imdb">IMDb ID:</label>
+            <input type="text" id="imdb" name="imdb" required>
+        </div>
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="releaseYear">Release Year:</label>
+                <input type="number" id="releaseYear" name="releaseYear" required min="1800" max="2099">
+            </div>
+            <div class="text-center mt-1">
+                <button type="submit" class="btn btn-success">Save Movie</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = 'http://localhost:8080/api/movies';
+
+    const movieTableBody = document.getElementById('movieTableBody');
+    const addMovieBtn = document.getElementById('addMovieBtn');
+    const movieModal = document.getElementById('movieModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const movieForm = document.getElementById('movieForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const imdbInput = document.getElementById('imdb');
+    const titleInput = document.getElementById('title');
+    const releaseYearInput = document.getElementById('releaseYear');
+    const movieImdbHiddenInput = document.getElementById('movieImdbHidden');
+    const loader = document.getElementById('loader');
+    const errorMessageDiv = document.getElementById('errorMessage');
+
+    let currentMovieImdb = null; // To track if we are editing
+
+    // --- Utility Functions ---
+    function showLoader() {
+        loader.style.display = 'block';
+    }
+
+    function hideLoader() {
+        loader.style.display = 'none';
+    }
+
+    function displayError(message) {
+        errorMessageDiv.textContent = message;
+        errorMessageDiv.style.display = 'block';
+    }
+
+    function clearError() {
+        errorMessageDiv.textContent = '';
+        errorMessageDiv.style.display = 'none';
+    }
+
+    // --- API Functions ---
+
+    // GET all movies
+    async function fetchMovies() {
+        showLoader();
+        clearError();
+        try {
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+            }
+            const movies = await response.json();
+            renderMovies(movies);
+        } catch (error) {
+            console.error('Error fetching movies:', error);
+            displayError(`Failed to load movies: ${error.message}. Make sure the API server is running.`);
+        } finally {
+            hideLoader();
+        }
+    }
+
+    // POST a new movie
+    async function addMovie(movieData) {
+        showLoader();
+        clearError();
+        try {
+            const response = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(movieData),
+            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || response.statusText}`);
+            }
+            await response.json(); // Or handle response data if needed
+            fetchMovies(); // Refresh the table
+            closeMovieModal();
+        } catch (error) {
+            console.error('Error adding movie:', error);
+            displayError(`Failed to add movie: ${error.message}`);
+        } finally {
+            hideLoader();
+        }
+    }
+
+    // PUT (Update) an existing movie
+    async function updateMovie(imdb, movieData) {
+        showLoader();
+        clearError();
+        try {
+            const response = await fetch(`${API_BASE_URL}/${imdb}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(movieData),
+            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(`HTTP error! status: ${response.status} - ${errorData.message || response.statusText}`);
+            }
+            await response.json(); // Or handle response data
+            fetchMovies(); // Refresh the table
+            closeMovieModal();
+        } catch (error) {
+            console.error('Error updating movie:', error);
+            displayError(`Failed to update movie: ${error.message}`);
+        } finally {
+            hideLoader();
+        }
+    }
+
+    // DELETE a movie
+    async function deleteMovie(imdb) {
+        if (!confirm(`Are you sure you want to delete movie with IMDb ID: ${imdb}?`)) {
+            return;
+        }
+        showLoader();
+        clearError();
+        try {
+            const response = await fetch(`${API_BASE_URL}/${imdb}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                // Try to get a message from the body, otherwise use statusText
+                let errorMsg = response.statusText;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorData.error || errorMsg;
+                } catch (e) {
+                    // Ignore if body is not JSON or empty
+                }
+                throw new Error(`HTTP error! status: ${response.status} - ${errorMsg}`);
+            }
+            // No JSON response expected for DELETE usually, but check if your API sends one
+            // await response.json();
+            fetchMovies(); // Refresh the table
+        } catch (error) {
+            console.error('Error deleting movie:', error);
+            displayError(`Failed to delete movie: ${error.message}`);
+        } finally {
+            hideLoader();
+        }
+    }
+
+    // GET a single movie (to populate edit form)
+    async function fetchSingleMovie(imdb) {
+        showLoader();
+        clearError();
+        try {
+            const response = await fetch(`${API_BASE_URL}/${imdb}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+            }
+            const movie = await response.json();
+            return movie;
+        } catch (error) {
+            console.error('Error fetching single movie:', error);
+            displayError(`Failed to load movie details: ${error.message}`);
+            return null;
+        } finally {
+            hideLoader();
+        }
+    }
+
+
+    // --- UI Rendering ---
+    function renderMovies(movies) {
+        movieTableBody.innerHTML = ''; // Clear existing rows
+        if (!movies || movies.length === 0) {
+            const row = movieTableBody.insertRow();
+            const cell = row.insertCell();
+            cell.colSpan = 4;
+            cell.textContent = 'No movies found.';
+            cell.style.textAlign = 'center';
+            return;
+        }
+
+        movies.forEach(movie => {
+            const row = movieTableBody.insertRow();
+            row.insertCell().textContent = movie.imdb;
+            row.insertCell().textContent = movie.title;
+            row.insertCell().textContent = movie.releaseYear;
+
+            const actionsCell = row.insertCell();
+            const editButton = document.createElement('button');
+            editButton.classList.add('btn', 'btn-primary');
+            editButton.textContent = 'Edit';
+            editButton.style.marginRight = '5px'; // Add some spacing
+            editButton.onclick = () => openEditModal(movie.imdb);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.classList.add('btn', 'btn-danger');
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = () => deleteMovie(movie.imdb);
+
+            actionsCell.appendChild(editButton);
+            actionsCell.appendChild(deleteButton);
+        });
+    }
+
+    // --- Modal Handling ---
+    function openAddModal() {
+        currentMovieImdb = null; // Ensure it's an add operation
+        movieForm.reset();
+        modalTitle.textContent = 'Add New Movie';
+        imdbInput.disabled = false; // IMDb should be editable for new movies
+        movieImdbHiddenInput.value = '';
+        movieModal.style.display = 'block';
+        imdbInput.focus();
+    }
+
+    async function openEditModal(imdb) {
+        currentMovieImdb = imdb;
+        movieForm.reset();
+        const movie = await fetchSingleMovie(imdb);
+        if (movie) {
+            modalTitle.textContent = 'Edit Movie';
+            imdbInput.value = movie.imdb;
+            imdbInput.disabled = true; // IMDb ID should not be changed on update
+            titleInput.value = movie.title;
+            releaseYearInput.value = movie.releaseYear;
+            movieImdbHiddenInput.value = movie.imdb; // Store for submission
+            movieModal.style.display = 'block';
+            titleInput.focus();
+        }
+    }
+
+    function closeMovieModal() {
+        movieModal.style.display = 'none';
+        movieForm.reset();
+        clearError(); // Clear any form-specific errors shown in the global error div
+    }
+
+    // --- Event Listeners ---
+    addMovieBtn.addEventListener('click', openAddModal);
+    closeModalBtn.addEventListener('click', closeMovieModal);
+
+    // Close modal if user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (event.target === movieModal) {
+            closeMovieModal();
+        }
+    });
+
+    movieForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const movieData = {
+            imdb: imdbInput.value.trim(), // Send imdb from the visible field for new, or hidden for existing.
+            title: titleInput.value.trim(),
+            releaseYear: parseInt(releaseYearInput.value, 10),
+        };
+
+        if (currentMovieImdb) { // If currentMovieImdb is set, it's an update
+            // For PUT, use the imdb from currentMovieImdb (which is from the movie being edited)
+            updateMovie(currentMovieImdb, { title: movieData.title, releaseYear: movieData.releaseYear });
+        } else { // Otherwise, it's an add
+            addMovie(movieData);
+        }
+    });
+
+    // --- Initial Load ---
+    document.addEventListener('DOMContentLoaded', fetchMovies);
+
+</script>
+</body>
+</html>
